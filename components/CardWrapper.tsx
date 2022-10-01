@@ -5,7 +5,18 @@ import { InitialValues } from "../utils/cardInitialValues";
 import { Card } from "./Card";
 
 export const CardWrapper: React.FC = () => {
-  const [cards, setCards] = useState<{ title: string; id: string }[]>([]);
+  const [cards, setCards] = useState<
+    {
+      title: string;
+      id: string;
+      initialPosition: {
+        x: number;
+        y: number;
+        width: string | number;
+        height: string | number;
+      };
+    }[]
+  >([]);
 
   //   const hanleInitialPosition = (index: number) => {
   //     const t = index % 4;
@@ -23,7 +34,26 @@ export const CardWrapper: React.FC = () => {
   //     };
   //   };
   const handleAddTile = () => {
-    setCards((cards) => [...cards, { title: "New tile", id: uuidv4() }]);
+    setCards((cards) => [
+      ...cards,
+      {
+        title: "New tile",
+        id: uuidv4(),
+        initialPosition: {
+          x: InitialValues.X,
+          y: InitialValues.Y,
+          height: InitialValues.HEIGHT,
+          width: InitialValues.WIDTH,
+        },
+      },
+    ]);
+  };
+  const handleChangeName = (title: string, id: string) => {
+    setCards((cards) => {
+      return cards.map((card) => {
+        return card.id === id ? { ...card, title } : card;
+      });
+    });
   };
   return (
     <>
@@ -43,6 +73,7 @@ export const CardWrapper: React.FC = () => {
               exit={{ opacity: 0 }}
             >
               <Card
+                id={card.id}
                 title={card.title}
                 handleActive={() =>
                   setCards((cards) => [
@@ -56,6 +87,9 @@ export const CardWrapper: React.FC = () => {
                   height: InitialValues.HEIGHT,
                   width: InitialValues.WIDTH,
                 }}
+                handleChangeName={(name: string, id: string) =>
+                  handleChangeName(name, id)
+                }
               />
             </motion.div>
           );
