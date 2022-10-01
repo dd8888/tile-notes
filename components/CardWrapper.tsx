@@ -90,6 +90,9 @@ export const CardWrapper: React.FC = () => {
                 handleChangeName={(name: string, id: string) =>
                   handleChangeName(name, id)
                 }
+                handleRemoveCard={(id: string) =>
+                  setCards((cards) => cards.filter((card) => card.id !== id))
+                }
               />
             </motion.div>
           );

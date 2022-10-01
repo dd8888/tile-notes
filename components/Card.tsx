@@ -2,6 +2,7 @@ import {
   ArrowsPointingInIcon,
   ArrowsPointingOutIcon,
   PencilSquareIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/solid";
 import clsx from "clsx";
 import { useRef, useState } from "react";
@@ -20,7 +21,15 @@ export const Card: React.FC<{
     height: string | number;
   };
   handleChangeName: (name: string, id: string) => void;
-}> = ({ title, handleActive, initialPosition, id, handleChangeName }) => {
+  handleRemoveCard: (id: string) => void;
+}> = ({
+  title,
+  handleActive,
+  initialPosition,
+  id,
+  handleChangeName,
+  handleRemoveCard,
+}) => {
   const [properties, setProperties] = useState<{
     width?: any;
     height?: any;
@@ -128,7 +137,7 @@ export const Card: React.FC<{
           />
         </div>
         <ArrowsPointingInIcon
-          className=" h-4 w-4 p-0.5 cursor-pointer rounded-full bg-red-400  text-white"
+          className=" h-4 w-4 p-0.5 cursor-pointer rounded-full bg-yellow-400  text-white"
           onClick={() => {
             resizeMinSize();
           }}
@@ -137,6 +146,12 @@ export const Card: React.FC<{
           className="h-4 w-4 p-0.5 cursor-pointer rounded-full bg-green-400 text-white"
           onClick={() => {
             resizeFullScreen();
+          }}
+        />
+        <XMarkIcon
+          className="h-4 w-4  cursor-pointer rounded-full bg-red-600 text-white"
+          onClick={() => {
+            handleRemoveCard(id);
           }}
         />
       </div>
