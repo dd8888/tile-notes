@@ -1,4 +1,5 @@
 /** @type {import('tailwindcss').Config} */
+const plugin = require("tailwindcss/plugin");
 module.exports = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx}",
@@ -7,5 +8,9 @@ module.exports = {
   theme: {
     extend: {},
   },
-  plugins: [],
+  plugins: [
+    plugin(({ addVariant }) => {
+      addVariant("optionsOpen", '&[data-isopen="true"]');
+    }),
+  ],
 };

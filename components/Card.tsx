@@ -2,24 +2,28 @@ import {
   ArrowsPointingInIcon,
   ArrowsPointingOutIcon,
   PencilSquareIcon,
+  PlusCircleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
 import clsx from "clsx";
-import { useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { useMemo, useRef, useState } from "react";
 import { Rnd } from "react-rnd";
 import { InitialValues } from "../utils/cardInitialValues";
 import { useResizeCard } from "../utils/hooks/useResizeCard";
+
+interface Position {
+  x: number;
+  y: number;
+  width: string | number;
+  height: string | number;
+}
 
 export const Card: React.FC<{
   title: string;
   id: string;
   handleActive: () => void;
-  initialPosition: {
-    x: number;
-    y: number;
-    width: string | number;
-    height: string | number;
-  };
+  initialPosition: Position;
   handleChangeName: (name: string, id: string) => void;
   handleRemoveCard: (id: string) => void;
 }> = ({
@@ -30,6 +34,8 @@ export const Card: React.FC<{
   handleChangeName,
   handleRemoveCard,
 }) => {
+  const [optionsOpen, setOptionsOpen] = useState(false);
+
   const [properties, setProperties] = useState<{
     width?: any;
     height?: any;
@@ -51,6 +57,10 @@ export const Card: React.FC<{
   } = useResizeCard(setProperties);
   const [isTitleEditable, setIsTitleEditable] = useState(false);
   const titleRef = useRef<any>(null);
+  const isWide = useMemo(() => {
+    return parseInt(properties?.width) > 400 || properties.width === "99.5%";
+  }, [properties.width]);
+
   return (
     <Rnd
       bounds="window"
@@ -61,7 +71,6 @@ export const Card: React.FC<{
         y: InitialValues.Y,
       }}
       onMouseDown={(e) => {
-        console.log(e.target);
         handleActive();
       }}
       size={{ width: properties?.width, height: properties?.height }}
@@ -93,7 +102,7 @@ export const Card: React.FC<{
       maxHeight="100%"
       maxWidth="100%"
       className={clsx(
-        "bg-slate-200 rounded-md shadow-md bg-opacity-95 active:ring active:ring-blue-300 active:shadow-lg",
+        "overflow-hidden bg-slate-200 rounded-md shadow-md bg-opacity-95 active:ring active:ring-blue-300 active:shadow-lg",
         isResizing && "transition-all duration-700"
       )}
     >
@@ -109,8 +118,8 @@ export const Card: React.FC<{
           }
         }}
         className={clsx(
-          "outline-none bg-transparent absolute top-0.5 z-10 truncate text-white font-medium text-sm text-start",
-          properties?.width === "99.5%" || parseInt(properties?.width) > 400
+          "transition-all duration-700 outline-none bg-transparent absolute top-0.5 z-10 truncate text-white font-medium text-sm text-start",
+          isWide
             ? "left-1/2 -translate-x-1/2 max-w-[60%]"
             : "left-2 translate-x-0 max-w-[50%]"
         )}
@@ -149,12 +158,27 @@ export const Card: React.FC<{
           }}
         />
         <XMarkIcon
-          className="h-4 w-4  cursor-pointer rounded-full bg-red-600 text-white"
+          className="h-4 w-4 p-0.5 cursor-pointer rounded-full bg-red-600 text-white "
           onClick={() => {
             handleRemoveCard(id);
           }}
         />
       </div>
+      <PlusCircleIcon
+        className={clsx(
+          "h-6 w-6 absolute left-1/2 -translate-x-1/2 cursor-pointer transition-all duration-300",
+          optionsOpen ? "bottom-20 rotate-45 text-red-600" : "bottom-2"
+        )}
+        onClick={() => setOptionsOpen((open) => !open)}
+      />
+      <motion.div
+        layout
+        data-isopen={optionsOpen}
+        initial={{ height: 1 }}
+        className="h-[1px] optionsOpen:!h-20 bg-slate-600 w-full absolute -bottom-[1px] left-0 !rounded-md"
+      >
+        <motion.div layout className="child" />
+      </motion.div>
     </Rnd>
   );
 };
