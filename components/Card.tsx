@@ -1,6 +1,8 @@
 import {
   ArrowsPointingInIcon,
   ArrowsPointingOutIcon,
+  ChatBubbleLeftEllipsisIcon,
+  ListBulletIcon,
   PencilSquareIcon,
   PlusCircleIcon,
   XMarkIcon,
@@ -11,6 +13,7 @@ import { useMemo, useRef, useState } from "react";
 import { Rnd } from "react-rnd";
 import { InitialValues } from "../utils/cardInitialValues";
 import { useResizeCard } from "../utils/hooks/useResizeCard";
+import { MdEditorComp } from "./MdEditor";
 
 interface Position {
   x: number;
@@ -25,14 +28,18 @@ export const Card: React.FC<{
   handleActive: () => void;
   initialPosition: Position;
   handleChangeName: (name: string, id: string) => void;
+  handleChangeText: (text: string, id: string) => void;
   handleRemoveCard: (id: string) => void;
+  textContent: string;
 }> = ({
   title,
   handleActive,
   initialPosition,
   id,
   handleChangeName,
+  handleChangeText,
   handleRemoveCard,
+  textContent,
 }) => {
   const [optionsOpen, setOptionsOpen] = useState(false);
 
@@ -60,7 +67,6 @@ export const Card: React.FC<{
   const isWide = useMemo(() => {
     return parseInt(properties?.width) > 400 || properties.width === "99.5%";
   }, [properties.width]);
-
   return (
     <Rnd
       bounds="window"
@@ -70,7 +76,7 @@ export const Card: React.FC<{
         x: InitialValues.X,
         y: InitialValues.Y,
       }}
-      onMouseDown={(e) => {
+      onMouseDown={() => {
         handleActive();
       }}
       size={{ width: properties?.width, height: properties?.height }}
@@ -102,10 +108,25 @@ export const Card: React.FC<{
       maxHeight="100%"
       maxWidth="100%"
       className={clsx(
-        "overflow-hidden bg-slate-200 rounded-md shadow-md bg-opacity-95 active:ring active:ring-blue-300 active:shadow-lg",
+        "parent overflow-hidden bg-slate-200 rounded-md shadow-md bg-opacity-95 active:ring active:ring-blue-300 active:shadow-lg",
         isResizing && "transition-all duration-700"
       )}
     >
+      <div
+        className="h-full"
+        onMouseDown={(e) => isWide && e.stopPropagation()}
+      >
+        <MdEditorComp
+          view={{
+            html: true,
+            md: isWide,
+            menu: isWide,
+          }}
+          handleValueChange={(text: string) => handleChangeText(text, id)}
+          value={textContent}
+        />
+      </div>
+
       <input
         size={title.length}
         ref={titleRef}
@@ -167,7 +188,7 @@ export const Card: React.FC<{
       <PlusCircleIcon
         className={clsx(
           "h-6 w-6 absolute left-1/2 -translate-x-1/2 cursor-pointer transition-all duration-300",
-          optionsOpen ? "bottom-20 rotate-45 text-red-600" : "bottom-2"
+          optionsOpen ? "bottom-[15%] rotate-45 text-red-600" : "bottom-2"
         )}
         onClick={() => setOptionsOpen((open) => !open)}
       />
@@ -175,9 +196,19 @@ export const Card: React.FC<{
         layout
         data-isopen={optionsOpen}
         initial={{ height: 1 }}
-        className="h-[1px] optionsOpen:!h-20 bg-slate-600 w-full absolute -bottom-[1px] left-0 !rounded-md"
+        className={clsx(
+          "h-[1px] optionsOpen:!h-[15%] bg-slate-600 w-full absolute -bottom-[1px] left-0 !rounded-md"
+        )}
       >
-        <motion.div layout className="child" />
+        <motion.div
+          className={clsx(
+            "flex w-full justify-around h-full items-center",
+            optionsOpen ? "opacity-100" : "opacity-0"
+          )}
+        >
+          <ListBulletIcon className="h-[50%] w-[50%] text-slate-200 cursor-pointer" />
+          <ChatBubbleLeftEllipsisIcon className="h-[50%] w-[50%] text-slate-200 cursor-pointer" />
+        </motion.div>
       </motion.div>
     </Rnd>
   );

@@ -27,6 +27,19 @@ a {
 * {
   box-sizing: border-box;
 }
+ul {
+  list-style: disc;
+}
+ol {
+  list-style: decimal;
+}
+
+.button-type-mode {
+  display: none !important;
+}
+.button-type-fullscreen {
+  display: none !important;
+}
 
 /* @media (prefers-color-scheme: dark) {
   html {

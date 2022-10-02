@@ -15,6 +15,7 @@ export const CardWrapper: React.FC = () => {
         width: string | number;
         height: string | number;
       };
+      text: string;
     }[]
   >([]);
 
@@ -45,6 +46,7 @@ export const CardWrapper: React.FC = () => {
           height: InitialValues.HEIGHT,
           width: InitialValues.WIDTH,
         },
+        text: "",
       },
     ]);
   };
@@ -52,6 +54,13 @@ export const CardWrapper: React.FC = () => {
     setCards((cards) => {
       return cards.map((card) => {
         return card.id === id ? { ...card, title } : card;
+      });
+    });
+  };
+  const handleChangeText = (text: string, id: string) => {
+    setCards((cards) => {
+      return cards.map((card) => {
+        return card.id === id ? { ...card, text } : card;
       });
     });
   };
@@ -75,6 +84,7 @@ export const CardWrapper: React.FC = () => {
               <Card
                 id={card.id}
                 title={card.title}
+                textContent={card.text}
                 handleActive={() =>
                   setCards((cards) => [
                     ...cards.filter((cardFilter) => cardFilter.id !== card.id),
@@ -92,6 +102,9 @@ export const CardWrapper: React.FC = () => {
                 }
                 handleRemoveCard={(id: string) =>
                   setCards((cards) => cards.filter((card) => card.id !== id))
+                }
+                handleChangeText={(text: string, id: string) =>
+                  handleChangeText(text, id)
                 }
               />
             </motion.div>
