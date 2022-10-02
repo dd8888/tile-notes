@@ -40,6 +40,10 @@ ol {
 .button-type-fullscreen {
   display: none !important;
 }
+.sec-md > textarea {
+  background: transparent !important;
+  border-right: 1px solid rgb(55, 68, 98) !important;
+}
 
 /* @media (prefers-color-scheme: dark) {
   html {

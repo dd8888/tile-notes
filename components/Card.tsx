@@ -1,20 +1,18 @@
 import {
   ArrowsPointingInIcon,
   ArrowsPointingOutIcon,
-  ChatBubbleLeftEllipsisIcon,
-  ListBulletIcon,
+  PencilIcon,
   PencilSquareIcon,
-  PlusCircleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
+import axios from "axios";
 import clsx from "clsx";
-import { motion } from "framer-motion";
 import { useMemo, useRef, useState } from "react";
+import { useMutation } from "react-query";
 import { Rnd } from "react-rnd";
 import { InitialValues } from "../utils/cardInitialValues";
 import { useResizeCard } from "../utils/hooks/useResizeCard";
 import { MdEditorComp } from "./MdEditor";
-
 interface Position {
   x: number;
   y: number;
@@ -41,8 +39,10 @@ export const Card: React.FC<{
   handleRemoveCard,
   textContent,
 }) => {
-  const [optionsOpen, setOptionsOpen] = useState(false);
-
+  const [isEditable, setIsEditable] = useState(false);
+  const updateCardMutation = useMutation(({ card }: { card: any }): any => {
+    return axios.post("/api/cards", card);
+  });
   const [properties, setProperties] = useState<{
     width?: any;
     height?: any;
@@ -84,7 +84,7 @@ export const Card: React.FC<{
       onDragStop={(e, d) => {
         if (
           typeof window !== "undefined" &&
-          d.x + properties.width === window.innerWidth
+          d.x + parseInt(properties.width) === window.innerWidth
         ) {
           resizeHalfRight();
         } else if (d.x === 0) {
@@ -108,19 +108,19 @@ export const Card: React.FC<{
       maxHeight="100%"
       maxWidth="100%"
       className={clsx(
-        "parent overflow-hidden bg-slate-200 rounded-md shadow-md bg-opacity-95 active:ring active:ring-blue-300 active:shadow-lg",
+        "parent overflow-hidden bg-slate-200 rounded-md shadow-md bg-opacity-95",
         isResizing && "transition-all duration-700"
       )}
     >
       <div
         className="h-full"
-        onMouseDown={(e) => isWide && e.stopPropagation()}
+        onMouseDown={(e) => isWide && isEditable && e.stopPropagation()}
       >
         <MdEditorComp
           view={{
             html: true,
-            md: isWide,
-            menu: isWide,
+            md: isEditable && isWide,
+            menu: isEditable && isWide,
           }}
           handleValueChange={(text: string) => handleChangeText(text, id)}
           value={textContent}
@@ -131,7 +131,10 @@ export const Card: React.FC<{
         size={title.length}
         ref={titleRef}
         disabled={!isTitleEditable}
-        onBlur={() => setIsTitleEditable(false)}
+        onBlur={() => {
+          setIsTitleEditable(false);
+          updateCardMutation.mutate({ card: { _id: id, title } });
+        }}
         onChange={(e) => handleChangeName(e.target.value, id)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
@@ -185,31 +188,31 @@ export const Card: React.FC<{
           }}
         />
       </div>
-      <PlusCircleIcon
+      <div
         className={clsx(
-          "h-6 w-6 absolute left-1/2 -translate-x-1/2 cursor-pointer transition-all duration-300",
-          optionsOpen ? "bottom-[15%] rotate-45 text-red-600" : "bottom-2"
-        )}
-        onClick={() => setOptionsOpen((open) => !open)}
-      />
-      <motion.div
-        layout
-        data-isopen={optionsOpen}
-        initial={{ height: 1 }}
-        className={clsx(
-          "h-[1px] optionsOpen:!h-[15%] bg-slate-600 w-full absolute -bottom-[1px] left-0 !rounded-md"
+          "flex items-center justify-center rounded-full p-1  h-6 w-6 absolute right-0 shadow-sm -translate-x-1/2 cursor-pointer transition-all duration-300 bottom-2",
+          isEditable ? "bg-red-600" : "bg-slate-200"
         )}
       >
-        <motion.div
-          className={clsx(
-            "flex w-full justify-around h-full items-center",
-            optionsOpen ? "opacity-100" : "opacity-0"
-          )}
-        >
-          <ListBulletIcon className="h-[50%] w-[50%] text-slate-200 cursor-pointer" />
-          <ChatBubbleLeftEllipsisIcon className="h-[50%] w-[50%] text-slate-200 cursor-pointer" />
-        </motion.div>
-      </motion.div>
+        {!isEditable && (
+          <PencilIcon
+            className={clsx("w-6 h-6 ")}
+            onClick={() => {
+              !isWide && resizeFullScreen();
+              setIsEditable(true);
+            }}
+          />
+        )}
+        {isEditable && (
+          <XMarkIcon
+            className={clsx("w-6 h-6 text-white")}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsEditable(false);
+            }}
+          />
+        )}
+      </div>
     </Rnd>
   );
 };

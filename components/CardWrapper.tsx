@@ -1,69 +1,65 @@
+import axios from "axios";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import { v4 as uuidv4 } from "uuid";
+import { useMutation, useQuery } from "react-query";
 import { InitialValues } from "../utils/cardInitialValues";
 import { Card } from "./Card";
-
+export interface ICard {
+  title: string;
+  _id: string;
+  initialPosition: {
+    x: number;
+    y: number;
+    width: string | number;
+    height: string | number;
+  };
+  text: string;
+}
 export const CardWrapper: React.FC = () => {
-  const [cards, setCards] = useState<
+  const [cards, setCards] = useState<ICard[]>([]);
+  const { isLoading: isLoadingCards, refetch: refetchCards } = useQuery(
+    ["cards"],
+    () => axios.get("/api/cards").then((response) => response.data),
     {
-      title: string;
-      id: string;
-      initialPosition: {
-        x: number;
-        y: number;
-        width: string | number;
-        height: string | number;
-      };
-      text: string;
-    }[]
-  >([]);
-
-  //   const hanleInitialPosition = (index: number) => {
-  //     const t = index % 4;
-  //     return {
-  //       x:
-  //         typeof window !== "undefined"
-  //           ? (window.innerWidth / 8) * t + window.innerWidth / 72
-  //           : 0,
-  //       y:
-  //         (InitialValues.HEIGHT / 2) * Math.floor(index / 4) +
-  //         (InitialValues.HEIGHT / 1.5) * Math.floor(index / 4) +
-  //         10,
-  //       width: "20%",
-  //       height: InitialValues.HEIGHT,
-  //     };
-  //   };
-  const handleAddTile = () => {
-    setCards((cards) => [
-      ...cards,
-      {
-        title: "New tile",
-        id: uuidv4(),
-        initialPosition: {
-          x: InitialValues.X,
-          y: InitialValues.Y,
-          height: InitialValues.HEIGHT,
-          width: InitialValues.WIDTH,
-        },
-        text: "",
+      onSuccess: (data) => {
+        setCards(data);
       },
-    ]);
+      //   refetchInterval: 1000,
+    }
+  );
+
+  const addCardMutation = useMutation((): any => {
+    return axios.post("/api/cards/new", {
+      title: "New tile",
+      initialPosition: {
+        x: InitialValues.X,
+        y: InitialValues.Y,
+        height: InitialValues.HEIGHT,
+        width: InitialValues.WIDTH,
+      },
+      text: "",
+    });
+  });
+
+  const handleAddTile = async () => {
+    await addCardMutation.mutateAsync();
+    refetchCards();
   };
   const handleChangeName = (title: string, id: string) => {
     setCards((cards) => {
       return cards.map((card) => {
-        return card.id === id ? { ...card, title } : card;
+        return card._id === id ? { ...card, title } : card;
       });
     });
   };
   const handleChangeText = (text: string, id: string) => {
     setCards((cards) => {
       return cards.map((card) => {
-        return card.id === id ? { ...card, text } : card;
+        return card._id === id ? { ...card, text } : card;
       });
     });
   };
+
   return (
     <>
       <button
@@ -72,45 +68,49 @@ export const CardWrapper: React.FC = () => {
       >
         Add new tile
       </button>
-      <AnimatePresence>
-        {cards.map((card, index) => {
-          return (
-            <motion.div
-              key={card.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <Card
-                id={card.id}
-                title={card.title}
-                textContent={card.text}
-                handleActive={() =>
-                  setCards((cards) => [
-                    ...cards.filter((cardFilter) => cardFilter.id !== card.id),
-                    card,
-                  ])
-                }
-                initialPosition={{
-                  x: InitialValues.X,
-                  y: InitialValues.Y,
-                  height: InitialValues.HEIGHT,
-                  width: InitialValues.WIDTH,
-                }}
-                handleChangeName={(name: string, id: string) =>
-                  handleChangeName(name, id)
-                }
-                handleRemoveCard={(id: string) =>
-                  setCards((cards) => cards.filter((card) => card.id !== id))
-                }
-                handleChangeText={(text: string, id: string) =>
-                  handleChangeText(text, id)
-                }
-              />
-            </motion.div>
-          );
-        })}
-      </AnimatePresence>
+      {!isLoadingCards && (
+        <AnimatePresence>
+          {cards.map((card, index) => {
+            return (
+              <motion.div
+                key={card._id}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <Card
+                  id={card._id}
+                  title={card.title}
+                  textContent={card.text}
+                  handleActive={() =>
+                    setCards((cards) => [
+                      ...cards.filter(
+                        (cardFilter) => cardFilter._id !== card._id
+                      ),
+                      card,
+                    ])
+                  }
+                  initialPosition={{
+                    x: card.initialPosition.x,
+                    y: card.initialPosition.y,
+                    height: card.initialPosition.height,
+                    width: card.initialPosition.width,
+                  }}
+                  handleChangeName={(name: string, id: string) =>
+                    handleChangeName(name, id)
+                  }
+                  handleRemoveCard={(id: string) =>
+                    setCards((cards) => cards.filter((card) => card._id !== id))
+                  }
+                  handleChangeText={(text: string, id: string) =>
+                    handleChangeText(text, id)
+                  }
+                />
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      )}
     </>
   );
 };

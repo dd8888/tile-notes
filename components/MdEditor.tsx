@@ -23,7 +23,7 @@ export const MdEditorComp = ({
   return (
     <MdEditor
       value={value}
-      className="h-full mt-5"
+      className="h-[90%] mt-5 bg-transparent max-w-full"
       renderHTML={(text) => mdParser.render(text)}
       onChange={handleEditorChange}
       view={view}
